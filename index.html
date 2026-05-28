@@ -8,7 +8,7 @@ Save this as `index.html` and open it in your browser.
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Love You Heart</title>
+  <title>Purple Heart Animation</title>
 
   <style>
     * {
@@ -35,33 +35,75 @@ Save this as `index.html` and open it in your browser.
 
     .text {
       position: absolute;
-      color: #ff2d55;
+      color: #b266ff;
       font-size: 14px;
       white-space: nowrap;
-      animation: glow 2s infinite alternate;
+      opacity: 0;
       user-select: none;
+      text-shadow:
+        0 0 5px #b266ff,
+        0 0 10px #b266ff,
+        0 0 20px #b266ff;
+
+      animation: drawHeart 0.5s forwards, glow 2s infinite alternate;
     }
 
-    .center-text {
+    .center-letter {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      color: white;
-      font-size: 64px;
+      color: #c77dff;
+      font-size: 120px;
       font-weight: bold;
-      text-shadow: 0 0 20px #ff2d55;
+      opacity: 0;
       z-index: 10;
+
+      text-shadow:
+        0 0 10px #c77dff,
+        0 0 20px #c77dff,
+        0 0 40px #c77dff,
+        0 0 80px #c77dff;
+
+      animation: showE 2s ease forwards 3s;
+    }
+
+    @keyframes drawHeart {
+      from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.5);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
     }
 
     @keyframes glow {
       from {
-        opacity: 0.5;
-        text-shadow: 0 0 5px #ff2d55;
+        text-shadow:
+          0 0 5px #b266ff,
+          0 0 10px #b266ff;
       }
+
+      to {
+        text-shadow:
+          0 0 10px #d9a3ff,
+          0 0 20px #d9a3ff,
+          0 0 40px #d9a3ff;
+      }
+    }
+
+    @keyframes showE {
+      from {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.5);
+      }
+
       to {
         opacity: 1;
-        text-shadow: 0 0 15px #ff2d55;
+        transform: translate(-50%, -50%) scale(1);
       }
     }
   </style>
@@ -69,37 +111,46 @@ Save this as `index.html` and open it in your browser.
 <body>
 
   <div class="container" id="container">
-    <div class="center-text">Love you</div>
+    <div class="center-letter">E</div>
   </div>
 
   <script>
     const container = document.getElementById("container");
 
-    // Create heart shape using math equation
-    for (let t = 0; t < Math.PI * 2; t += 0.08) {
+    let points = [];
+
+    // Heart equation
+    for (let t = 0; t < Math.PI * 2; t += 0.06) {
       const x = 16 * Math.pow(Math.sin(t), 3);
+
       const y =
         13 * Math.cos(t) -
         5 * Math.cos(2 * t) -
         2 * Math.cos(3 * t) -
         Math.cos(4 * t);
 
+      points.push({ x, y });
+    }
+
+    // Sort from bottom to top for drawing effect
+    points.sort((a, b) => a.y - b.y);
+
+    points.forEach((point, index) => {
       const text = document.createElement("div");
       text.className = "text";
       text.innerText = "I love you";
 
-      // Scale and center heart
-      const posX = window.innerWidth / 2 + x * 25;
-      const posY = window.innerHeight / 2 - y * 25;
+      const posX = window.innerWidth / 2 + point.x * 25;
+      const posY = window.innerHeight / 2 - point.y * 25;
 
       text.style.left = `${posX}px`;
       text.style.top = `${posY}px`;
 
-      // Random glow delay
-      text.style.animationDelay = `${Math.random() * 2}s`;
+      // Draw animation delay
+      text.style.animationDelay = `${index * 0.05}s`;
 
       container.appendChild(text);
-    }
+    });
   </script>
 
 </body>
