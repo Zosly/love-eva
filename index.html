@@ -19,12 +19,31 @@ Save this as `index.html` and open it in your browser.
     }
 
     body {
-      background: black;
       overflow: hidden;
       height: 100vh;
       display: flex;
       justify-content: center;
       align-items: center;
+      position: relative;
+      background: black;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: url("Screenshot 2026-05-03 021256.png") center center/cover no-repeat;
+      filter: blur(8px) brightness(0.5);
+      transform: scale(1.1);
+      z-index: -2;
+    }
+
+    body::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      z-index: -1;
     }
 
     .container {
@@ -52,20 +71,38 @@ Save this as `index.html` and open it in your browser.
       position: absolute;
       top: 50%;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translate(-50%, -50%) scale(0.2);
       color: #c77dff;
       font-size: 120px;
       font-weight: bold;
       opacity: 0;
       z-index: 10;
+      cursor: pointer;
+      transition: all 0.4s ease;
 
       text-shadow:
         0 0 10px #c77dff,
         0 0 20px #c77dff,
         0 0 40px #c77dff,
         0 0 80px #c77dff;
+    }
 
-      animation: showE 2s ease forwards 3s;
+    .center-letter.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .arrow {
+      position: absolute;
+      top: 58%;
+      left: 56%;
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      animation: floatArrow 1s infinite ease-in-out;
+      text-shadow: 0 0 10px white;
+      z-index: 20;
+      user-select: none;
     }
 
     @keyframes drawHeart {
@@ -98,8 +135,28 @@ Save this as `index.html` and open it in your browser.
     @keyframes showE {
       from {
         opacity: 0;
-        transform: translate(-50%, -50%) scale(0.5);
+        transform: translate(-50%, -50%) scale(0.3);
       }
+
+      to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+      }
+    }
+
+    @keyframes floatArrow {
+      0% {
+        transform: translateY(0px);
+      }
+
+      50% {
+        transform: translateY(-10px);
+      }
+
+      100% {
+        transform: translateY(0px);
+      }
+    }
 
       to {
         opacity: 1;
@@ -111,11 +168,29 @@ Save this as `index.html` and open it in your browser.
 <body>
 
   <div class="container" id="container">
-    <div class="center-letter">E</div>
+    <div class="center-letter" id="letterE">E</div>
+    <div class="arrow" id="arrow">↑ Press many times</div>
   </div>
 
   <script>
     const container = document.getElementById("container");
+    const letterE = document.getElementById("letterE");
+    const arrow = document.getElementById("arrow");
+
+    let clickCount = 0;
+
+    letterE.addEventListener("click", () => {
+      clickCount++;
+
+      // Small smooth pulse effect
+      letterE.style.transform = `translate(-50%, -50%) scale(${1 + clickCount * 0.05})`;
+
+      if (clickCount >= 8) {
+        letterE.classList.add("show");
+        arrow.style.opacity = "0";
+        arrow.style.transition = "opacity 1s ease";
+      }
+    });
 
     let points = [];
 
