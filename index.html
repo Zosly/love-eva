@@ -1,3 +1,8 @@
+# Heart-Shaped Love Animation Website
+
+Save this as `index.html` and open it in your browser.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,19 +45,18 @@
         0 0 10px #b266ff,
         0 0 20px #b266ff;
 
-      animation: drawHeart 0.5s forwards, glow 2s infinite alternate;
+      animation: drawHeart 0.4s forwards, glow 3s infinite alternate;
+      will-change: transform, opacity;
     }
 
     .center-letter {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
       color: #c77dff;
-      font-size: 120px;
+      font-size: 60px;
       font-weight: bold;
       opacity: 0;
       z-index: 10;
+      pointer-events: none;
 
       text-shadow:
         0 0 10px #c77dff,
@@ -60,7 +64,8 @@
         0 0 40px #c77dff,
         0 0 80px #c77dff;
 
-      animation: showE 2s ease forwards 3s;
+      animation: floatingEva 6s infinite ease-in-out;
+
     }
 
     @keyframes drawHeart {
@@ -90,11 +95,19 @@
       }
     }
 
-    @keyframes showE {
-      from {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.5);
+    @keyframes floatingEva {
+      0% {
+        transform: scale(0.8) rotate(-2deg);
       }
+
+      50% {
+        transform: scale(1) rotate(2deg);
+      }
+
+      100% {
+        transform: scale(0.8) rotate(-2deg);
+      }
+    }
 
       to {
         opacity: 1;
@@ -106,7 +119,7 @@
 <body>
 
   <div class="container" id="container">
-    <div class="center-letter">E</div>
+    <div class="center-letter" id="eva">Eva</div>
   </div>
 
   <script>
@@ -115,7 +128,7 @@
     let points = [];
 
     // Heart equation
-    for (let t = 0; t < Math.PI * 2; t += 0.06) {
+    for (let t = 0; t < Math.PI * 2; t += 0.12) {
       const x = 16 * Math.pow(Math.sin(t), 3);
 
       const y =
@@ -129,6 +142,8 @@
 
     // Sort from bottom to top for drawing effect
     points.sort((a, b) => a.y - b.y);
+
+    points = points.filter((_, index) => index % 2 === 0);
 
     points.forEach((point, index) => {
       const text = document.createElement("div");
@@ -146,6 +161,21 @@
 
       container.appendChild(text);
     });
+
+    // Floating Eva text
+    const eva = document.getElementById("eva");
+
+    function moveEva() {
+      const randomX = Math.random() * (window.innerWidth - 300) + 100;
+      const randomY = Math.random() * (window.innerHeight - 300) + 100;
+
+      eva.style.left = `${randomX}px`;
+      eva.style.top = `${randomY}px`;
+      eva.style.opacity = Math.random() > 0.3 ? 1 : 0.6;
+    }
+
+    moveEva();
+    setInterval(moveEva, 3000);
   </script>
 
 </body>
