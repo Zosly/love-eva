@@ -1,135 +1,112 @@
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Purple Heart Obsession | Eva → Zosly</title>
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Purple Heart Obsession | Eva → zosly</title>
   <style>
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
       user-select: none;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
-      background: radial-gradient(circle at center, #0a0015 0%, #000000 100%);
-      overflow: hidden;
-      height: 100vh;
-      width: 100vw;
+      background: radial-gradient(circle at center, #0b001a 0%, #000000 100%);
+      min-height: 100vh;
       display: flex;
-      justify-content: center;
       align-items: center;
-      font-family: 'Segoe UI', 'Arial', system-ui, sans-serif;
-      cursor: default;
-    }
-
-    .container {
-      position: relative;
+      justify-content: center;
+      font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+      overflow: hidden;
+      touch-action: pan-x pan-y; /* prevent zoom interference but allow scroll? no scroll needed */
+      position: fixed;
       width: 100%;
       height: 100%;
-      overflow: hidden;
     }
 
-    /* floating heart text pieces */
-    .text {
+    /* canvas container — smooth heart drawing */
+    .canvas-wrapper {
       position: absolute;
-      color: #c77dff;
-      font-size: 14px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      white-space: nowrap;
-      opacity: 0;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;  /* allow clicks to pass through to arrow */
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
       pointer-events: none;
-      text-shadow: 0 0 6px #aa66ff, 0 0 12px #b77eff, 0 0 20px #d59eff;
-      animation: drawHeart 0.45s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards,
-                 softPulse 2.5s infinite alternate;
-      transition: all 0.2s ease;
     }
 
-    @keyframes drawHeart {
-      0% {
-        opacity: 0;
-        transform: translateY(25px) scale(0.4);
-        filter: blur(3px);
-      }
-      70% {
-        opacity: 0.9;
-        transform: translateY(-3px) scale(1.02);
-      }
-      100% {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-        filter: blur(0);
-      }
-    }
-
-    @keyframes softPulse {
-      0% {
-        text-shadow: 0 0 4px #b266ff, 0 0 8px #b266ff;
-      }
-      100% {
-        text-shadow: 0 0 12px #e0b3ff, 0 0 24px #cc99ff, 0 0 35px #c285ff;
-      }
-    }
-
-    /* CENTRAL WORD (Eva / zosly) */
+    /* CENTRAL WORD (Eva → zosly) */
     .central-word {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      color: #e8c5ff;
-      font-size: 110px;
+      color: #f0d1ff;
+      font-size: clamp(3rem, 18vw, 7rem);
       font-weight: 900;
-      letter-spacing: 6px;
-      z-index: 30;
+      letter-spacing: 0.08em;
+      z-index: 40;
       opacity: 0;
       visibility: hidden;
-      transition: opacity 0.4s cubic-bezier(0.2, 0.9, 0.6, 1.1), visibility 0.2s;
-      text-align: center;
       white-space: nowrap;
-      font-family: 'Segoe UI', 'Poppins', system-ui, sans-serif;
-      text-shadow: 0 0 12px #c97dff, 0 0 25px #b55eff, 0 0 50px #a652ff, 0 0 100px #8a3eff;
+      text-align: center;
+      font-family: inherit;
+      transition: opacity 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1), visibility 0.2s;
+      text-shadow: 0 0 12px #cd8eff, 0 0 25px #b35eff, 0 0 45px #a145ff;
       pointer-events: none;
-      animation: none;
+      background: linear-gradient(135deg, #ffdaff, #cb9eff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: none;
+      font-weight: 800;
     }
-
+    /* fallback for color gradient */
     .central-word.reveal {
       opacity: 1;
       visibility: visible;
-      animation: popGlow 0.6s ease-out forwards;
+      animation: wordPop 0.5s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
     }
-
-    @keyframes popGlow {
+    @keyframes wordPop {
       0% {
         transform: translate(-50%, -50%) scale(0.2);
         opacity: 0;
-        filter: blur(12px);
+        filter: blur(15px);
       }
       40% {
         transform: translate(-50%, -50%) scale(1.1);
         opacity: 1;
-        filter: blur(0px);
+        filter: blur(0);
       }
       100% {
         transform: translate(-50%, -50%) scale(1);
-        text-shadow: 0 0 20px #e0aaff, 0 0 45px #c47dff;
       }
     }
 
-    /* INTERACTIVE ARROW (CLICK GUIDE) */
+    /* INTERACTIVE ARROW — BIG, TAPPABLE (mobile first) */
     .click-arrow {
       position: absolute;
-      bottom: 12%;
+      bottom: 8%;
       left: 50%;
       transform: translateX(-50%);
-      background: linear-gradient(135deg, #2c0047, #16002b);
-      backdrop-filter: blur(6px);
-      border: 1.5px solid #bb77ff;
-      border-radius: 80px;
-      padding: 14px 32px;
+      background: linear-gradient(145deg, #2c0047, #140026);
+      backdrop-filter: blur(12px);
+      border: 2px solid #c77dff;
+      border-radius: 100px;
+      padding: 14px 28px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -137,359 +114,482 @@
       cursor: pointer;
       z-index: 200;
       transition: all 0.2s ease;
-      box-shadow: 0 0 20px rgba(170, 85, 255, 0.5), 0 0 8px #aa55ff inset;
-      font-weight: bold;
-      animation: bounceArrow 1.2s infinite ease;
-    }
-
-    .click-arrow:hover {
-      transform: translateX(-50%) scale(1.05);
-      background: linear-gradient(135deg, #3f0168, #1f003b);
-      box-shadow: 0 0 30px #c275ff, 0 0 12px #d9a3ff inset;
-      border-color: #daaaff;
+      box-shadow: 0 0 20px rgba(170, 85, 255, 0.6), 0 0 10px #b266ff inset;
+      min-width: 200px;
+      touch-action: manipulation;
+      animation: floatArrow 1.3s infinite ease-in-out;
     }
 
     .click-arrow:active {
-      transform: translateX(-50%) scale(0.97);
+      transform: translateX(-50%) scale(0.96);
+      background: #3a0162;
+      box-shadow: 0 0 30px #d58eff;
+    }
+
+    @keyframes floatArrow {
+      0% {
+        bottom: 7%;
+      }
+      100% {
+        bottom: 11%;
+      }
     }
 
     .arrow-icon {
-      font-size: 42px;
-      filter: drop-shadow(0 0 8px #c273ff);
+      font-size: 48px;
+      filter: drop-shadow(0 0 8px #cf9eff);
       line-height: 1;
-      animation: swing 1s infinite alternate;
+      animation: wiggle 0.9s infinite alternate;
+    }
+
+    @keyframes wiggle {
+      0% {
+        transform: translateY(-2px) rotate(-6deg);
+      }
+      100% {
+        transform: translateY(4px) rotate(6deg);
+      }
     }
 
     .click-text {
-      font-size: 20px;
+      font-size: 1.35rem;
+      font-weight: 800;
       letter-spacing: 1px;
-      background: linear-gradient(135deg, #e5c3ff, #b878ff);
+      background: linear-gradient(135deg, #f0ccff, #c48aff);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      font-weight: 800;
-      text-shadow: 0 0 5px #b466ff;
     }
 
     .click-counter {
-      font-size: 18px;
+      font-size: 1rem;
       font-weight: bold;
-      color: #e2b5ff;
-      background: rgba(0, 0, 0, 0.6);
-      padding: 4px 12px;
-      border-radius: 40px;
+      background: rgba(0, 0, 0, 0.65);
+      padding: 4px 14px;
+      border-radius: 60px;
+      color: #eccdff;
+      backdrop-filter: blur(4px);
+      font-family: monospace;
       letter-spacing: 1px;
-      backdrop-filter: blur(2px);
     }
 
-    @keyframes bounceArrow {
-      0% {
-        bottom: 11%;
-      }
-      100% {
-        bottom: 15%;
-      }
-    }
-
-    @keyframes swing {
-      0% {
-        transform: translateY(-3px) rotate(-8deg);
-      }
-      100% {
-        transform: translateY(5px) rotate(8deg);
-      }
-    }
-
-    /* hide arrow after completion */
+    /* HIDE ARROW after completion */
     .click-arrow.finished {
       opacity: 0;
       visibility: hidden;
       pointer-events: none;
-      transition: opacity 0.5s ease, visibility 0.2s;
+      transition: opacity 0.4s ease, visibility 0.2s;
       animation: none;
-      transform: translateX(-50%) scale(0.8);
+      transform: translateX(-50%) scale(0.85);
     }
 
-    /* responsive adjustment */
+    /* tiny spark effect container */
+    .spark {
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      background: radial-gradient(circle, #f0aaff, #bc6eff);
+      border-radius: 50%;
+      opacity: 0.8;
+      animation: sparkFade 0.4s ease-out forwards;
+    }
+
+    @keyframes sparkFade {
+      0% {
+        transform: scale(0.2);
+        opacity: 0.9;
+      }
+      100% {
+        transform: scale(1.8);
+        opacity: 0;
+      }
+    }
+
+    /* mobile landscape adjustment */
     @media (max-width: 700px) {
-      .central-word {
-        font-size: 70px;
-        letter-spacing: 3px;
-      }
-      .text {
-        font-size: 10px;
-      }
-      .click-text {
-        font-size: 16px;
+      .click-arrow {
+        padding: 10px 22px;
+        min-width: 170px;
       }
       .arrow-icon {
-        font-size: 32px;
+        font-size: 38px;
+      }
+      .click-text {
+        font-size: 1.1rem;
+      }
+      .click-counter {
+        font-size: 0.9rem;
       }
     }
 
     @media (max-width: 480px) {
-      .central-word {
-        font-size: 50px;
+      .click-arrow {
+        bottom: 6%;
+        padding: 8px 18px;
       }
-      .text {
-        font-size: 8px;
+      .click-text {
+        font-size: 1rem;
       }
     }
   </style>
 </head>
 <body>
-<div class="container" id="container"></div>
+
+<div class="canvas-wrapper">
+  <canvas id="heartCanvas" width="800" height="800"></canvas>
+</div>
+<div class="central-word" id="centralWord"></div>
+<div class="click-arrow" id="clickArrow">
+  <div class="arrow-icon">👇💜</div>
+  <div class="click-text">♥ TAP HERE ♥</div>
+  <div class="click-counter" id="clickCounter">0 / 7</div>
+</div>
 
 <script>
   (function() {
-    // ------------------------------
-    //  CONFIGURATION
-    // ------------------------------
-    const REQUIRED_CLICKS = 5;         // "many times" (5 clicks)
-    const HEART_SCALE = 26;            // scaling factor for heart size
-    const MESSAGE_TEXT = "I'm obsessed with you";   // changed from "I love you"
+    // --- CONFIGURATION ---
+    const REQUIRED_CLICKS = 7;          // "many times" – perfect for mobile
+    const HEART_SCALE_FACTOR = 24;       // base size adjust
+    const PHRASE = "I'm obsessed with you";
     
     // DOM elements
-    const container = document.getElementById("container");
+    const canvas = document.getElementById('heartCanvas');
+    const ctx = canvas.getContext('2d');
+    const centralDiv = document.getElementById('centralWord');
+    const arrowDiv = document.getElementById('clickArrow');
+    const counterSpan = document.getElementById('clickCounter');
     
-    // Create central word element dynamically (instead of static "E")
-    const centralDiv = document.createElement("div");
-    centralDiv.className = "central-word";
-    centralDiv.id = "centralWord";
-    centralDiv.innerText = "";
-    container.appendChild(centralDiv);
-    
-    // Create clickable arrow (guide)
-    const arrowDiv = document.createElement("div");
-    arrowDiv.className = "click-arrow";
-    arrowDiv.id = "clickArrow";
-    arrowDiv.innerHTML = `
-      <div class="arrow-icon">👇✨</div>
-      <div class="click-text">♥ PRESS HERE ♥</div>
-      <div class="click-counter" id="clickCounter">0 / ${REQUIRED_CLICKS}</div>
-    `;
-    container.appendChild(arrowDiv);
-    
-    const clickCounterSpan = document.getElementById("clickCounter");
+    // State
     let currentClicks = 0;
-    let wordActivated = false;      // Eva already shown (replacement process started)
-    let finalCompleted = false;     // zosly already displayed and arrow hidden
+    let wordRevealed = false;       // Eva shown + transformed already done?
+    let transformationDone = false;  // zosly shown and arrow hidden
     
-    // Store heart points and text elements for resize repositioning
-    let heartPointsArray = [];       // each: { element, originalX, originalY }
+    // Heart geometry data (precomputed positions in normalized coordinates)
+    let heartPoints = [];   // each: { nx, ny, angle? not needed }
     
-    // ------------------------------
-    // 1. GENERATE HEART SHAPE (parametric heart)
-    // ------------------------------
-    function generateHeartPoints() {
+    // --- generate heart curve points (parametric, normalized range ~ [-1.2, 1.6] for x, y)
+    function generateHeartPointsNormalized() {
       const points = [];
-      // classic heart equation: x = 16*sin(t)^3 , y = 13cos(t)-5cos(2t)-2cos(3t)-cos(4t)
-      for (let t = 0; t < Math.PI * 2; t += 0.058) {
+      // classic heart: x = 16*sin(t)^3 , y = 13cos(t)-5cos(2t)-2cos(3t)-cos(4t)
+      // raw ranges: x ∈ [-16,16] , y ∈ [-17, 13] approx, so we'll map to canvas coords later
+      for (let t = 0; t < Math.PI * 2; t += 0.055) {  // ~114 points → smooth but performant
         const xRaw = 16 * Math.pow(Math.sin(t), 3);
-        const yRaw = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
-        points.push({ x: xRaw, y: yRaw });
+        const yRaw = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+        points.push({ xRaw, yRaw });
       }
-      // sort from bottom to top for smoother draw effect (original effect)
-      points.sort((a, b) => a.y - b.y);
-      return points;
-    }
-    
-    const heartRawPoints = generateHeartPoints();
-    
-    // Function to place text elements based on current window size
-    function positionTextElement(element, pointX, pointY) {
-      const centerX = window.innerWidth / 2;
-      const centerY = window.innerHeight / 2;
-      const left = centerX + pointX * HEART_SCALE;
-      const top = centerY - pointY * HEART_SCALE;
-      element.style.left = `${left}px`;
-      element.style.top = `${top}px`;
-    }
-    
-    // Create all text fragments with "I'm obsessed with you"
-    function buildHeart() {
-      // remove any existing .text to avoid duplicates (clean rebuild on resize? but we create only once)
-      const existingTexts = document.querySelectorAll(".text");
-      existingTexts.forEach(el => el.remove());
-      heartPointsArray = [];
+      // find bounds for normalization
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      for (let p of points) {
+        if (p.xRaw < minX) minX = p.xRaw;
+        if (p.xRaw > maxX) maxX = p.xRaw;
+        if (p.yRaw < minY) minY = p.yRaw;
+        if (p.yRaw > maxY) maxY = p.yRaw;
+      }
+      // add padding to avoid clipping
+      const rangeX = maxX - minX;
+      const rangeY = maxY - minY;
+      const paddingX = rangeX * 0.08;
+      const paddingY = rangeY * 0.08;
+      minX -= paddingX;
+      maxX += paddingX;
+      minY -= paddingY;
+      maxY += paddingY;
       
-      heartRawPoints.forEach((point, idx) => {
-        const textSpan = document.createElement("div");
-        textSpan.className = "text";
-        textSpan.innerText = MESSAGE_TEXT;
-        // store original coordinates for resize
-        const originalX = point.x;
-        const originalY = point.y;
-        textSpan.setAttribute("data-original-x", originalX);
-        textSpan.setAttribute("data-original-y", originalY);
-        
-        // position based on current window dimensions
-        positionTextElement(textSpan, originalX, originalY);
-        
-        // animation delay for sequential appearing (still artistic)
-        textSpan.style.animationDelay = `${idx * 0.038}s`;
-        
-        container.appendChild(textSpan);
-        heartPointsArray.push({
-          element: textSpan,
-          originalX: originalX,
-          originalY: originalY
-        });
-      });
+      const normPoints = points.map(p => ({
+        nx: (p.xRaw - minX) / (maxX - minX),   // 0..1
+        ny: (p.yRaw - minY) / (maxY - minY)
+      }));
+      return normPoints;
     }
     
-    // reposition all heart words on window resize (responsive heart)
-    function repositionHeartOnResize() {
-      for (let item of heartPointsArray) {
-        if (item.element) {
-          positionTextElement(item.element, item.originalX, item.originalY);
-        }
-      }
-    }
-    
-    // ------------------------------
-    // 2. ARROW CLICK HANDLER (many clicks -> reveal Eva -> transform to zosly)
-    // ------------------------------
-    function updateArrowCounter() {
-      if (clickCounterSpan) {
-        clickCounterSpan.innerText = `${currentClicks} / ${REQUIRED_CLICKS}`;
-      }
-    }
-    
-    function revealAndReplaceWord() {
-      if (wordActivated) return; // already triggered once
-      wordActivated = true;
+    // draw heart on canvas with phrase repeated along curve
+    function drawHeart() {
+      if (!ctx || heartPoints.length === 0) return;
       
-      // STEP 1: show central word "Eva"
+      const w = canvas.clientWidth;
+      const h = canvas.clientHeight;
+      // set canvas buffer size for crispness (2x for retina)
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = w * dpr;
+      canvas.height = h * dpr;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, w, h);
+      
+      // background: deep black/purple glow gradient
+      const grad = ctx.createLinearGradient(0, 0, w, h);
+      grad.addColorStop(0, '#03000a');
+      grad.addColorStop(1, '#120022');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+      
+      // define heart drawing area: center + scale (mobile friendly)
+      const centerX = w / 2;
+      const centerY = h / 2;
+      const heartWidth = Math.min(w, h) * 0.65;
+      const heartHeight = heartWidth * 0.92;  // heart proportions
+      
+      // Draw subtle outer glow (blur effect via shadow)
+      ctx.save();
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = "#b76eff";
+      
+      // iterate points & draw each phrase with elegant styling
+      for (let i = 0; i < heartPoints.length; i++) {
+        const p = heartPoints[i];
+        // map normalized 0..1 to canvas coordinates
+        const x = centerX + (p.nx - 0.5) * heartWidth;
+        const y = centerY + (p.ny - 0.55) * heartHeight;  // shift slightly up for better heart centering
+        
+        // skip if off canvas (rare)
+        if (x < -50 || x > w + 50 || y < -50 || y > h + 50) continue;
+        
+        // dynamic font size based on density & canvas width
+        let fontSize = Math.max(12, Math.min(w * 0.042, 26));
+        // vary size a bit for organic look
+        const variation = Math.sin(i * 0.37) * 1.5;
+        fontSize += variation;
+        ctx.font = `${fontSize}px 'Segoe UI', 'Poppins', system-ui, sans-serif`;
+        ctx.fillStyle = `rgba(210, 150, 255, ${0.9 + Math.sin(i) * 0.08})`;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = "#c881ff";
+        
+        // measure text to center it nicely
+        const metrics = ctx.measureText(PHRASE);
+        const textWidth = metrics.width;
+        ctx.fillText(PHRASE, x - textWidth / 2, y - 4);
+        
+        // add tiny sparkling dot near each word for extra magic
+        ctx.beginPath();
+        ctx.arc(x - textWidth/2 + 2, y - 8, 1.2, 0, Math.PI * 2);
+        ctx.fillStyle = "#ffd0ff";
+        ctx.shadowBlur = 5;
+        ctx.fill();
+      }
+      
+      // additional heart contour glow (stroke)
+      ctx.shadowBlur = 0;
+      ctx.beginPath();
+      // draw a subtle traced heart outline without repeating heavy text
+      for (let i = 0; i < heartPoints.length; i++) {
+        const p = heartPoints[i];
+        const x = centerX + (p.nx - 0.5) * heartWidth;
+        const y = centerY + (p.ny - 0.55) * heartHeight;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = "#bd7aff";
+      ctx.lineWidth = 1.8;
+      ctx.shadowBlur = 8;
+      ctx.stroke();
+      
+      ctx.restore();
+      
+      // draw floating particles accent
+      ctx.save();
+      for (let i = 0; i < 35; i++) {
+        const angle = Date.now() * 0.002 + i;
+        const rad = (heartWidth * 0.4) * (0.5 + Math.sin(angle) * 0.2);
+        const xOff = Math.cos(angle) * rad;
+        const yOff = Math.sin(angle * 1.3) * rad * 0.6;
+        ctx.beginPath();
+        ctx.arc(centerX + xOff, centerY + yOff - 5, 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(190, 120, 255, ${0.4 + Math.sin(angle) * 0.2})`;
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+    
+    // resize + redraw heart (critical for mobile orientation)
+    let resizeTimer;
+    function handleResize() {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        drawHeart();
+      }, 80);
+    }
+    
+    // init heart points & draw once
+    function initHeartGeometry() {
+      heartPoints = generateHeartPointsNormalized();
+      drawHeart();
+    }
+    
+    // --- interactive arrow logic (many taps)
+    function updateCounterUI() {
+      counterSpan.innerText = `${currentClicks} / ${REQUIRED_CLICKS}`;
+    }
+    
+    // spark effect on tap (mobile friendly)
+    function createSpark(x, y) {
+      const spark = document.createElement('div');
+      spark.classList.add('spark');
+      spark.style.left = `${x - 8}px`;
+      spark.style.top = `${y - 8}px`;
+      spark.style.width = '18px';
+      spark.style.height = '18px';
+      document.body.appendChild(spark);
+      setTimeout(() => spark.remove(), 400);
+    }
+    
+    // transform Eva -> zosly sequence
+    function showEvaThenZosly() {
+      if (wordRevealed) return;
+      wordRevealed = true;
+      
+      // set central word to "Eva"
       centralDiv.innerText = "Eva";
       centralDiv.classList.add("reveal");
       
-      // STEP 2: after a brief moment (to let "Eva" appear), replace with "zosly"
-      // as required: "when the Eva word appears replace Eva with zosly"
+      // after showing Eva, replace with "zosly" after 0.35 seconds
       setTimeout(() => {
-        if (centralDiv && centralDiv.innerText === "Eva") {
+        if (centralDiv.innerText === "Eva") {
           centralDiv.innerText = "zosly";
-          // add an extra small shine effect
-          centralDiv.style.textShadow = "0 0 25px #ffbbff, 0 0 60px #dd99ff, 0 0 100px #b347ff";
-          finalCompleted = true;
+          // extra sparkle celebration
+          centralDiv.style.animation = 'wordPop 0.4s ease-out forwards';
+          // add glowing pulse to canvas background
+          const tempGlow = setInterval(() => {
+            drawHeart(); 
+          }, 60);
+          setTimeout(() => clearInterval(tempGlow), 400);
           
-          // fade out & disable arrow after transformation
+          transformationDone = true;
+          // hide arrow gracefully
           if (arrowDiv) {
-            arrowDiv.classList.add("finished");
+            arrowDiv.classList.add('finished');
           }
+          // final canvas pulse effect: redraw one last time with extra brightness
+          setTimeout(() => {
+            drawHeart();
+          }, 100);
         }
-      }, 280); // Eva visible for 280ms then transforms into zosly (smooth transition)
+      }, 380);
     }
     
-    function onArrowClick(e) {
+    // handle arrow clicks / taps (mobile + desktop)
+    function onArrowTap(e) {
+      e.preventDefault();
       e.stopPropagation();
-      // if already final (zosly shown) or word already activated, no more clicks matter
-      if (finalCompleted || wordActivated) return;
       
-      // increment clicks until required
+      if (transformationDone || wordRevealed) return;
+      
+      // get tap coordinates for spark
+      let clientX, clientY;
+      if (e.touches) {
+        clientX = e.touches[0].clientX;
+        clientY = e.touches[0].clientY;
+      } else {
+        clientX = e.clientX;
+        clientY = e.clientY;
+      }
+      if (clientX && clientY) createSpark(clientX, clientY);
+      else {
+        // fallback: center of arrow
+        const rect = arrowDiv.getBoundingClientRect();
+        createSpark(rect.left + rect.width/2, rect.top + rect.height/2);
+      }
+      
+      // increment counter
       if (currentClicks < REQUIRED_CLICKS) {
         currentClicks++;
-        updateArrowCounter();
+        updateCounterUI();
         
-        // haptic-like feedback: subtle scale on arrow
-        arrowDiv.style.transform = "translateX(-50%) scale(0.96)";
+        // haptic mini animation on arrow
+        arrowDiv.style.transform = "translateX(-50%) scale(0.97)";
         setTimeout(() => {
-          if (arrowDiv) arrowDiv.style.transform = "translateX(-50%) scale(1)";
+          if (arrowDiv && !transformationDone) arrowDiv.style.transform = "translateX(-50%) scale(1)";
         }, 100);
         
-        // once we hit required clicks, trigger the Eva -> zosly sequence
-        if (currentClicks === REQUIRED_CLICKS && !wordActivated) {
-          revealAndReplaceWord();
+        // reached required clicks ?
+        if (currentClicks === REQUIRED_CLICKS && !wordRevealed) {
+          showEvaThenZosly();
         }
       }
     }
     
-    // Attach click listener to arrow
-    arrowDiv.addEventListener("click", onArrowClick);
-    
-    // ------------------------------
-    // 3. RESIZE HANDLER (make heart responsive)
-    // ------------------------------
-    let resizeTimeout;
-    window.addEventListener("resize", () => {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(() => {
-        repositionHeartOnResize();
-        // also ensure central word remains perfectly centered (transform handles it)
-        // but arrow also sticks to bottom center via CSS, no extra needed
-      }, 80);
-    });
-    
-    // ------------------------------
-    // 4. INITIALIZATION & ANIMATION START
-    // ------------------------------
-    function init() {
-      buildHeart();             // create floating "I'm obsessed with you" heart shape
-      // set initial arrow counter text
-      updateArrowCounter();
-      
-      // final fallback: central word hidden until clicks.
-      centralDiv.style.opacity = "0";
-      centralDiv.style.visibility = "hidden";
-      centralDiv.classList.remove("reveal");
-      
-      // little extra: small instruction tooltip via title but arrow is self-explanatory
+    // attach event listeners (touch + mouse for cross device)
+    function bindArrowEvents() {
+      arrowDiv.addEventListener('click', onArrowTap);
+      arrowDiv.addEventListener('touchstart', onArrowTap, { passive: false });
     }
     
+    // Adjust canvas drawing when window changes orientation or resize
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        initHeartGeometry();
+      }, 40);
+    });
+    
+    // also watch for device pixel ratio changes
+    const observer = new ResizeObserver(() => {
+      drawHeart();
+    });
+    observer.observe(canvas);
+    
+    // Initialization
+    function init() {
+      initHeartGeometry();
+      bindArrowEvents();
+      updateCounterUI();
+      // initial central word hidden
+      centralDiv.classList.remove('reveal');
+      centralDiv.style.opacity = '0';
+      centralDiv.style.visibility = 'hidden';
+      
+      // extra animation to draw heart with gentle fade (canvas already drawn)
+      canvas.style.opacity = '0';
+      canvas.style.transition = 'opacity 0.8s ease';
+      setTimeout(() => { canvas.style.opacity = '1'; }, 80);
+    }
+    
+    // for mobile, ensure canvas uses full retina rendering and keeps redraw after any font load
     init();
     
-    // Optional: tiny spark effect on every click? not needed but adds delight
-    function createMicroSpark(x, y) {
-      const spark = document.createElement("div");
-      spark.style.position = "fixed";
-      spark.style.width = "8px";
-      spark.style.height = "8px";
-      spark.style.background = "#dd99ff";
-      spark.style.borderRadius = "50%";
-      spark.style.left = x + "px";
-      spark.style.top = y + "px";
-      spark.style.pointerEvents = "none";
-      spark.style.zIndex = "9999";
-      spark.style.boxShadow = "0 0 12px #e5aaff";
-      spark.style.opacity = "1";
-      document.body.appendChild(spark);
-      setTimeout(() => {
-        spark.style.transition = "all 0.4s ease";
-        spark.style.opacity = "0";
-        spark.style.transform = "scale(2)";
-        setTimeout(() => spark.remove(), 400);
-      }, 20);
-    }
-    
-    // additional click FX to emphasize pressing (if user clicks arrow, gives micro spark)
-    const originalClickHandler = onArrowClick;
-    const enhancedClickHandler = (e) => {
-      const rect = arrowDiv.getBoundingClientRect();
-      const centerX = rect.left + rect.width / 2;
-      const centerY = rect.top + rect.height / 2;
-      createMicroSpark(centerX, centerY);
-      originalClickHandler(e);
-    };
-    arrowDiv.removeEventListener("click", onArrowClick);
-    arrowDiv.addEventListener("click", enhancedClickHandler);
-    
-    // final polish: after word transforms to zosly, optionally change background whisper glow
-    // also ensure that we never lose central text appearance.
-    // small protection: if something tries to double trigger, it's safe.
-    
-    // Also, dynamic heart position when orientation changes / resize
-    window.addEventListener("orientationchange", () => {
-      setTimeout(() => {
-        repositionHeartOnResize();
-      }, 30);
+    // Manual update on visibility change (save battery but redraw anyway)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        drawHeart();
+      }
     });
     
-    // preload any initial animation delay consistency
-    setTimeout(() => {
-      repositionHeartOnResize();
-    }, 100);
+    // dynamic brightness for central word: re-draw heart on word reveal to match glow
+    const origShow = showEvaThenZosly;
+    window.showEvaThenZosly = origShow;
     
-    // console-free, smooth experience
+    // final fallback: if any tap not registered due to canvas overlay, arrow remains clickable
+    // ensure canvas wrapper does not block clicks
+    document.querySelector('.canvas-wrapper').style.pointerEvents = 'none';
+    
+    // additional micro interaction: change arrow color while tapping on progress
+    function updateArrowProgress() {
+      if (currentClicks > 0 && !wordRevealed) {
+        const percent = currentClicks / REQUIRED_CLICKS;
+        const intensity = 50 + percent * 100;
+        arrowDiv.style.boxShadow = `0 0 ${15 + percent * 20}px #c27eff`;
+      }
+    }
+    
+    // override original onArrowTap to also update progress style
+    const originalTap = onArrowTap;
+    window.onArrowTap = function(e) {
+      originalTap(e);
+      updateArrowProgress();
+    };
+    arrowDiv.removeEventListener('click', onArrowTap);
+    arrowDiv.removeEventListener('touchstart', onArrowTap);
+    arrowDiv.addEventListener('click', (e) => {
+      originalTap(e);
+      updateArrowProgress();
+    });
+    arrowDiv.addEventListener('touchstart', (e) => {
+      originalTap(e);
+      updateArrowProgress();
+    }, { passive: false });
+    
+    // set counter initial
+    updateCounterUI();
   })();
 </script>
 </body>
