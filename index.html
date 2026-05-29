@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Heart of Words · Disappearing Train Wave</title>
+  <title>حبيت اسوي الترند لك</title>
   <style>
     * {
       margin: 0;
@@ -57,17 +57,17 @@
       }
     }
 
-    /* TRAIN EFFECT - word becomes BRIGHT and VISIBLE (leading engine) */
+    /* TRAIN ENGINE - word becomes BRIGHT (the train head) */
     .word-particle.train-engine {
       transform: scale(1.3) translateY(-8px);
       text-shadow: 0 0 15px #ff6666, 0 0 30px #ff2222, 0 0 45px #ff0000;
       color: #ff8888;
       opacity: 1 !important;
       z-index: 20;
-      transition: transform 0.2s cubic-bezier(0.2, 1.2, 0.4, 1), text-shadow 0.15s ease, color 0.1s;
+      transition: transform 0.2s cubic-bezier(0.2, 1.2, 0.4, 1), text-shadow 0.15s ease;
     }
 
-    /* TRAIL effect - slightly bright but still visible */
+    /* TRAIL effect - slightly bright (the cars behind engine) */
     .word-particle.train-trail {
       transform: scale(1.08) translateY(-3px);
       text-shadow: 0 0 8px #ff4444, 0 0 15px #cc2222;
@@ -76,14 +76,14 @@
       transition: transform 0.25s ease, text-shadow 0.2s ease;
     }
 
-    /* VANISHING ZONE - words behind the train disappear */
+    /* VANISHING - only 1 or 2 words disappear at a time (right behind the train) */
     .word-particle.train-vanished {
       opacity: 0 !important;
-      transform: scale(0.6);
+      transform: scale(0.5);
       transition: opacity 0.2s ease, transform 0.2s ease;
     }
 
-    /* glowing letter E in the center of the heart - exactly centered */
+    /* glowing letter E in the center of the heart */
     .center-letter {
       position: absolute;
       top: 50%;
@@ -114,7 +114,7 @@
       }
     }
 
-    /* subtle floating base animation for all words */
+    /* subtle floating animation */
     @keyframes softFloat {
       0% {
         transform: translateY(0px);
@@ -127,7 +127,7 @@
       }
     }
 
-    /* responsive adjustments */
+    /* responsive */
     @media (max-width: 700px) {
       .word-particle {
         font-size: 10px;
@@ -188,10 +188,10 @@
     let trainInterval = null;
     let currentTrainPos = 0;
     
-    // Train configuration
-    const TRAIN_LENGTH = 14;      // How many words are affected by the train
-    const VANISH_ZONE = 22;       // Words behind the train disappear
-    const STEP_DELAY = 70;        // milliseconds between steps
+    // Train configuration - ONLY 1 or 2 words vanish at a time!
+    const TRAIL_LENGTH = 4;        // Number of glowing words behind engine (trail)
+    const VANISH_COUNT = 2;        // ONLY 2 words disappear at a time (right behind the trail)
+    const STEP_DELAY = 75;         // milliseconds between steps
     
     // ==================== CREATE WORDS ON HEART ====================
     function createWordsOnHeart() {
@@ -210,7 +210,7 @@
         word.style.left = `${leftPos}px`;
         word.style.top = `${topPos}px`;
         
-        // Appearance animation
+        // Appearance animation with floating
         word.style.animation = `gentleAppear 0.4s ease forwards ${idx * 0.012}s, softFloat 3s ease-in-out infinite ${(idx % 9) * 0.3}s`;
         
         container.appendChild(word);
@@ -222,37 +222,33 @@
     function clearAllEffects() {
       wordElements.forEach(word => {
         word.classList.remove('train-engine', 'train-trail', 'train-vanished');
+        word.style.opacity = '';
       });
     }
     
     // ==================== APPLY TRAIN EFFECT ====================
-    // This makes words:
-    // - DISAPPEAR when train passed them
-    // - GLOW BRIGHT when train is on them
-    // - REAPPEAR when train moves far enough
+    // Only 1-2 words vanish at a time (the ones immediately after the trail)
     
     function applyTrainAtPosition(engineIndex) {
-      // First, clear ALL effects from ALL words
+      // Clear all effects from ALL words first
       wordElements.forEach(word => {
         word.classList.remove('train-engine', 'train-trail', 'train-vanished');
-        // Reset any inline styles that might interfere
         word.style.opacity = '';
       });
       
-      // Now apply effects in layers:
-      
-      // 1. VANISHING ZONE: words behind the train (disappear)
-      // These are words that the train has already passed
-      for (let offset = VANISH_ZONE; offset < VANISH_ZONE + 35; offset++) {
-        const vanishIndex = (engineIndex - offset + totalWords) % totalWords;
-        const vanishedWord = wordElements[vanishIndex];
-        if (vanishedWord) {
-          vanishedWord.classList.add('train-vanished');
-        }
+      // 1. ENGINE ZONE (the main bright word)
+      const engineWord = wordElements[engineIndex];
+      if (engineWord) {
+        engineWord.classList.add('train-engine');
+        // Quick flash
+        engineWord.style.color = '#ffaaaa';
+        setTimeout(() => {
+          if (engineWord) engineWord.style.color = '';
+        }, 100);
       }
       
-      // 2. TRAIL ZONE: words just behind the engine (visible & glowing, but fading)
-      for (let offset = 1; offset <= TRAIN_LENGTH; offset++) {
+      // 2. TRAIL ZONE (glowing words behind the engine - visible and bright)
+      for (let offset = 1; offset <= TRAIL_LENGTH; offset++) {
         const trailIndex = (engineIndex - offset + totalWords) % totalWords;
         const trailWord = wordElements[trailIndex];
         if (trailWord) {
@@ -260,28 +256,23 @@
         }
       }
       
-      // 3. ENGINE ZONE: the main bright word (the "train head")
-      const engineWord = wordElements[engineIndex];
-      if (engineWord) {
-        engineWord.classList.add('train-engine');
-        // Flash extra bright
-        engineWord.style.transition = 'color 0.1s ease';
-        engineWord.style.color = '#ffaaaa';
-        setTimeout(() => {
-          if (engineWord) engineWord.style.color = '';
-        }, 100);
+      // 3. VANISHING ZONE (ONLY 1-2 words disappear - right behind the trail)
+      for (let offset = TRAIL_LENGTH + 1; offset <= TRAIL_LENGTH + VANISH_COUNT; offset++) {
+        const vanishIndex = (engineIndex - offset + totalWords) % totalWords;
+        const vanishWord = wordElements[vanishIndex];
+        if (vanishWord) {
+          vanishWord.classList.add('train-vanished');
+        }
       }
       
-      // 4. Optional: make the E pulse when train passes the bottom/top of heart
-      if (engineIndex % 28 === 0) {
+      // Small pulse on E letter for dramatic effect
+      if (engineIndex % 30 === 0) {
         centerE.style.animation = 'none';
-        centerE.style.transform = 'translate(-50%, -50%) scale(1.06)';
-        centerE.style.textShadow = '0 0 45px #ff6666, 0 0 80px #ff3333';
+        centerE.style.transform = 'translate(-50%, -50%) scale(1.05)';
         setTimeout(() => {
           if (centerE) {
             centerE.style.animation = 'eGlowPulse 2s ease-in-out infinite alternate';
             centerE.style.transform = 'translate(-50%, -50%) scale(1)';
-            centerE.style.textShadow = '';
           }
         }, 200);
       }
@@ -327,7 +318,7 @@
     // ==================== ADD SPARKLES ====================
     function addHeartSparkles() {
       const sparkleColors = ['#ff4444', '#ff6666', '#cc3333', '#ff7777'];
-      for (let i = 0; i < 70; i++) {
+      for (let i = 0; i < 60; i++) {
         const sparkle = document.createElement('div');
         sparkle.style.position = 'absolute';
         sparkle.style.width = '2px';
@@ -339,7 +330,7 @@
         sparkle.style.zIndex = '5';
         
         const angle = Math.random() * Math.PI * 2;
-        const radius = 150 + Math.random() * 100;
+        const radius = 150 + Math.random() * 90;
         const offsetX = Math.cos(angle) * radius;
         const offsetY = Math.sin(angle) * radius * 0.8;
         
@@ -356,7 +347,7 @@
         style.textContent = `
           @keyframes sparkleFade {
             0% { opacity: 0; transform: scale(0); }
-            50% { opacity: 0.9; transform: scale(1.8); box-shadow: 0 0 6px #ff6666; }
+            50% { opacity: 0.8; transform: scale(1.5); box-shadow: 0 0 6px #ff6666; }
             100% { opacity: 0; transform: scale(0); }
           }
         `;
@@ -381,7 +372,7 @@
       setTimeout(() => repositionHeart(), 50);
     });
     
-    console.log(`❤️ Heart with ${totalWords} "I love you" words. Train makes words disappear and reappear as it moves around!`);
+    console.log(`❤️ Heart with ${totalWords} "I love you" words. Train moves around — only 1-2 words vanish at a time!`);
   })();
 </script>
 </body>
