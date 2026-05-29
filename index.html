@@ -37,9 +37,8 @@
       text-shadow: 0 0 4px #8b0000, 0 0 10px #5e0000;
       opacity: 1;
       z-index: 15;
-      font-weight: 600;
       letter-spacing: 0.3px;
-      transition: transform 0.4s cubic-bezier(0.34, 1.2, 0.64, 1), text-shadow 0.3s ease, color 0.2s ease;
+      transition: text-shadow 0.3s ease, color 0.25s ease;
       will-change: transform;
     }
 
@@ -57,63 +56,14 @@
       }
     }
 
-    /* TRAIN ENGINE - word becomes BIGGER (the train head) */
-    .word-particle.train-engine {
-      transform: scale(1.35) translateY(-8px);
-      text-shadow: 0 0 15px #ff6666, 0 0 30px #ff2222, 0 0 45px #ff0000;
-      color: #ff8888;
-      z-index: 20;
-      transition: transform 0.25s cubic-bezier(0.2, 1.2, 0.4, 1), text-shadow 0.2s ease;
-    }
-
-    /* TRAIL effect - slightly bright, normal size (the cars behind engine) */
+    /* TRAIL effect - words glow as the trail passes through them */
     .word-particle.train-trail {
-      transform: scale(1.08) translateY(-3px);
-      text-shadow: 0 0 8px #ff4444, 0 0 15px #cc2222;
-      color: #ff5555;
-      transition: transform 0.3s ease, text-shadow 0.25s ease;
+      text-shadow: 0 0 10px #ff5555, 0 0 22px #ff2222, 0 0 35px #ff0000;
+      color: #ff8888;
+      transition: text-shadow 0.25s ease, color 0.2s ease;
     }
 
-    /* SQUEEZE ZONE - words become SMALLER when train passes over them (then return to normal) */
-    .word-particle.train-squeezed {
-      transform: scale(0.7) translateY(2px);
-      text-shadow: 0 0 2px #881111, 0 0 5px #550000;
-      color: #992222;
-      transition: transform 0.35s ease-out, text-shadow 0.3s ease, color 0.25s ease;
-    }
-
-    /* glowing letter E in the center of the heart */
-    .center-letter {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-size: 95px;
-      font-weight: 900;
-      font-family: 'Segoe UI', 'Arial Black', 'Impact', sans-serif;
-      opacity: 1;
-      z-index: 30;
-      text-shadow: 0 0 20px #a81c1c, 0 0 35px #6d0e0e, 0 0 55px #3a0303, 0 0 80px #8b0000;
-      color: #d42a2a;
-      letter-spacing: 8px;
-      pointer-events: none;
-      white-space: pre;
-      background: none;
-      animation: eGlowPulse 2s ease-in-out infinite alternate;
-    }
-
-    @keyframes eGlowPulse {
-      0% {
-        text-shadow: 0 0 20px #a81c1c, 0 0 35px #6d0e0e, 0 0 55px #3a0303;
-        transform: translate(-50%, -50%) scale(0.98);
-      }
-      100% {
-        text-shadow: 0 0 35px #ff5555, 0 0 60px #c12727, 0 0 90px #8b0000, 0 0 120px #a11a1a;
-        transform: translate(-50%, -50%) scale(1.02);
-      }
-    }
-
-    /* subtle floating animation */
+    /* subtle floating animation for all words */
     @keyframes softFloat {
       0% {
         transform: translateY(0px);
@@ -131,32 +81,21 @@
       .word-particle {
         font-size: 10px;
       }
-      .center-letter {
-        font-size: 65px;
-        letter-spacing: 5px;
-      }
     }
 
     @media (max-width: 480px) {
       .word-particle {
         font-size: 8px;
       }
-      .center-letter {
-        font-size: 50px;
-        letter-spacing: 3px;
-      }
     }
   </style>
 </head>
 <body>
-<div class="container" id="container">
-  <div class="center-letter" id="heartLetterE">E</div>
-</div>
+<div class="container" id="container"></div>
 
 <script>
   (function() {
     const container = document.getElementById('container');
-    const centerE = document.getElementById('heartLetterE');
     
     // ==================== HEART SHAPE EQUATION ====================
     const heartPoints = [];
@@ -168,7 +107,7 @@
       heartPoints.push({ x, y });
     }
     
-    // Sort by angle for continuous train movement around the heart
+    // Sort by angle for continuous trail movement around the heart
     heartPoints.sort((a, b) => {
       const angleA = Math.atan2(a.y, a.x);
       const angleB = Math.atan2(b.y, b.x);
@@ -184,12 +123,11 @@
     
     // Store word elements
     let wordElements = [];
-    let trainInterval = null;
+    let trailInterval = null;
     
-    // Train configuration - SLOWER and SQUEEZE effect (no vanish!)
-    const TRAIL_LENGTH = 5;        // Number of glowing words behind engine
-    const SQUEEZE_COUNT = 3;       // Words that get smaller (then return to normal)
-    const STEP_DELAY = 120;        // SLOWER: 120ms between steps (was 75)
+    // Trail configuration - just a glowing trail (no engine, no vanish, no squeeze)
+    const TRAIL_LENGTH = 8;        // Number of glowing words in the trail
+    const STEP_DELAY = 100;        // Speed of trail movement (ms)
     
     // ==================== CREATE WORDS ON HEART ====================
     function createWordsOnHeart() {
@@ -198,7 +136,7 @@
         word.className = 'word-particle';
         word.innerText = 'I love you';
         
-        // Dark rich red base
+        // Dark rich red base color
         const redValue = 170 + Math.floor(Math.random() * 50);
         word.style.color = `rgb(${redValue}, 35, 35)`;
         
@@ -208,83 +146,54 @@
         word.style.left = `${leftPos}px`;
         word.style.top = `${topPos}px`;
         
-        // Appearance animation with floating
-        word.style.animation = `gentleAppear 0.4s ease forwards ${idx * 0.012}s, softFloat 3s ease-in-out infinite ${(idx % 9) * 0.3}s`;
+        // Appearance animation with gentle floating
+        const floatDelay = (idx % 9) * 0.3;
+        word.style.animation = `gentleAppear 0.4s ease forwards ${idx * 0.012}s, softFloat 3s ease-in-out infinite ${floatDelay}s`;
         
         container.appendChild(word);
         wordElements.push(word);
       });
     }
     
-    // ==================== CLEAR ALL TRAIN CLASSES ====================
+    // ==================== CLEAR ALL TRAIL CLASSES ====================
     function clearAllEffects() {
       wordElements.forEach(word => {
-        word.classList.remove('train-engine', 'train-trail', 'train-squeezed');
+        word.classList.remove('train-trail');
       });
     }
     
-    // ==================== APPLY TRAIN EFFECT ====================
-    // Words become BIG at engine, NORMAL in trail, SMALL behind train (then return to normal)
+    // ==================== APPLY TRAIL EFFECT ====================
+    // Just a glowing trail that moves around the heart (no engine word)
     
-    function applyTrainAtPosition(engineIndex) {
-      // Clear all effects from ALL words first
+    let currentHeadPosition = 0;
+    
+    function applyTrailAtPosition(headIndex) {
+      // Clear all trail effects
       wordElements.forEach(word => {
-        word.classList.remove('train-engine', 'train-trail', 'train-squeezed');
+        word.classList.remove('train-trail');
       });
       
-      // 1. ENGINE ZONE (the main bright word - BIG)
-      const engineWord = wordElements[engineIndex];
-      if (engineWord) {
-        engineWord.classList.add('train-engine');
-        // Quick flash
-        engineWord.style.color = '#ffaaaa';
-        setTimeout(() => {
-          if (engineWord) engineWord.style.color = '';
-        }, 100);
-      }
-      
-      // 2. TRAIL ZONE (glowing words behind engine - slightly bright, normal size)
-      for (let offset = 1; offset <= TRAIL_LENGTH; offset++) {
-        const trailIndex = (engineIndex - offset + totalWords) % totalWords;
+      // Apply glow to a range of words (the trail)
+      for (let offset = 0; offset < TRAIL_LENGTH; offset++) {
+        const trailIndex = (headIndex - offset + totalWords) % totalWords;
         const trailWord = wordElements[trailIndex];
         if (trailWord) {
           trailWord.classList.add('train-trail');
         }
       }
-      
-      // 3. SQUEEZE ZONE (words that become SMALLER - right behind the trail)
-      // These get squished, then when train moves further, they return to normal
-      for (let offset = TRAIL_LENGTH + 1; offset <= TRAIL_LENGTH + SQUEEZE_COUNT; offset++) {
-        const squeezeIndex = (engineIndex - offset + totalWords) % totalWords;
-        const squeezeWord = wordElements[squeezeIndex];
-        if (squeezeWord) {
-          squeezeWord.classList.add('train-squeezed');
-        }
-      }
-      
-      // Gentle pulse on E letter for dramatic effect
-      if (engineIndex % 25 === 0) {
-        centerE.style.animation = 'none';
-        centerE.style.transform = 'translate(-50%, -50%) scale(1.04)';
-        setTimeout(() => {
-          if (centerE) {
-            centerE.style.animation = 'eGlowPulse 2s ease-in-out infinite alternate';
-            centerE.style.transform = 'translate(-50%, -50%) scale(1)';
-          }
-        }, 200);
-      }
     }
     
-    // ==================== START TRAIN ANIMATION ====================
-    function startTrainAnimation() {
-      if (trainInterval) clearInterval(trainInterval);
+    // ==================== START TRAIL ANIMATION ====================
+    function startTrailAnimation() {
+      if (trailInterval) clearInterval(trailInterval);
       
-      let enginePosition = 0;
+      let headPosition = 0;
       
-      trainInterval = setInterval(() => {
-        // Move train forward slowly
-        enginePosition = (enginePosition + 1) % totalWords;
-        applyTrainAtPosition(enginePosition);
+      trailInterval = setInterval(() => {
+        // Move trail head forward
+        headPosition = (headPosition + 1) % totalWords;
+        currentHeadPosition = headPosition;
+        applyTrailAtPosition(headPosition);
       }, STEP_DELAY);
     }
     
@@ -304,11 +213,6 @@
         word.style.left = `${newLeft}px`;
         word.style.top = `${newTop}px`;
       });
-      
-      // Keep E centered
-      centerE.style.left = '50%';
-      centerE.style.top = '50%';
-      centerE.style.transform = 'translate(-50%, -50%)';
     }
     
     // ==================== ADD SPARKLES ====================
@@ -359,7 +263,7 @@
       addHeartSparkles();
       
       setTimeout(() => {
-        startTrainAnimation();
+        startTrailAnimation();
       }, 1000);
     }, 150);
     
@@ -368,7 +272,7 @@
       setTimeout(() => repositionHeart(), 50);
     });
     
-    console.log(`❤️ Heart with ${totalWords} "I love you" words. Train moves SLOWLY — words get BIG → NORMAL → SMALL → back to NORMAL!`);
+    console.log(`❤️ Heart with ${totalWords} "I love you" words. A glowing trail moves around the heart!`);
   })();
 </script>
 </body>
