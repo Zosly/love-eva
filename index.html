@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
-  <title>Heart of Words · Eternal Love</title>
+  <title>Heart of Words · Eternal Love Train</title>
   <style>
     * {
       margin: 0;
@@ -37,17 +37,17 @@
       text-shadow: 0 0 4px #8b0000, 0 0 10px #5e0000;
       opacity: 0;
       z-index: 15;
-      will-change: transform;
       font-weight: 600;
       letter-spacing: 0.3px;
-      animation: gentleAppear 0.45s ease forwards;
+      transition: transform 0.4s cubic-bezier(0.34, 1.2, 0.64, 1), text-shadow 0.3s ease;
+      will-change: transform;
     }
 
-    /* subtle floating pulse for each word - makes heart feel alive */
+    /* gentle appear animation */
     @keyframes gentleAppear {
       0% {
         opacity: 0;
-        transform: scale(0.6);
+        transform: scale(0.5);
         filter: blur(4px);
       }
       100% {
@@ -57,24 +57,22 @@
       }
     }
 
-    /* floating heartbeat animation for all words */
-    .word-particle {
-      animation: gentleAppear 0.45s ease forwards, softFloat 3s ease-in-out infinite;
+    /* train wave animation states - these create the "train" effect */
+    .word-particle.train-active {
+      transform: scale(1.2) translateY(-6px);
+      text-shadow: 0 0 12px #ff5555, 0 0 20px #ff2222, 0 0 30px #aa0000;
+      color: #ff5e5e;
+      transition: transform 0.35s cubic-bezier(0.2, 1.1, 0.4, 1), text-shadow 0.2s ease, color 0.2s;
     }
 
-    @keyframes softFloat {
-      0% {
-        transform: translateY(0px);
-      }
-      50% {
-        transform: translateY(-3px);
-      }
-      100% {
-        transform: translateY(0px);
-      }
+    .word-particle.train-trail {
+      transform: scale(1.05) translateY(-3px);
+      text-shadow: 0 0 8px #ff4444, 0 0 15px #cc2222;
+      color: #ff4444;
+      transition: transform 0.4s cubic-bezier(0.3, 1, 0.5, 1), text-shadow 0.3s ease;
     }
 
-    /* glowing letter E in the center of the heart */
+    /* glowing letter E in the center of the heart - exactly centered */
     .center-letter {
       position: absolute;
       top: 50%;
@@ -102,6 +100,19 @@
       100% {
         text-shadow: 0 0 35px #ff5555, 0 0 60px #c12727, 0 0 90px #8b0000, 0 0 120px #a11a1a;
         transform: translate(-50%, -50%) scale(1.02);
+      }
+    }
+
+    /* subtle floating base animation for all words - keeps heart alive */
+    @keyframes softFloat {
+      0% {
+        transform: translateY(0px);
+      }
+      50% {
+        transform: translateY(-2px);
+      }
+      100% {
+        transform: translateY(0px);
       }
     }
 
@@ -141,24 +152,33 @@
     // Classic parametric heart: x = 16sin³(t), y = 13cos(t) - 5cos(2t) - 2cos(3t) - cos(4t)
     const heartPoints = [];
     
-    // Generate points with perfect density for beautiful heart silhouette
-    for (let t = 0; t < Math.PI * 2; t += 0.052) {
+    // Generate dense points for beautiful heart silhouette
+    for (let t = 0; t < Math.PI * 2; t += 0.048) {
       const x = 16 * Math.pow(Math.sin(t), 3);
       const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
       heartPoints.push({ x, y });
     }
     
-    // Sort bottom to top for elegant draw effect (visual layering)
-    heartPoints.sort((a, b) => a.y - b.y);
+    // Sort for even distribution around the heart (clockwise order for train effect)
+    // We want the train to flow smoothly around the heart perimeter
+    heartPoints.sort((a, b) => {
+      const angleA = Math.atan2(a.y, a.x);
+      const angleB = Math.atan2(b.y, b.x);
+      return angleA - angleB;
+    });
+    
     const totalWords = heartPoints.length;
     
-    // Heart scaling factor (size on screen)
+    // Heart scaling factor
     let heartScale = 24;
     let centerX = window.innerWidth / 2;
     let centerY = window.innerHeight / 2;
     
     // Store all word elements
     let wordElements = [];
+    let trainInterval = null;
+    let currentTrainIndex = 0;
+    let isTrainRunning = true;
     
     // ==================== CREATE WORDS ON HEART SHAPE ====================
     function createWordsOnHeart() {
@@ -167,8 +187,8 @@
         word.className = 'word-particle';
         word.innerText = 'I love you';
         
-        // Dark rich red with subtle variation
-        const redValue = 180 + Math.floor(Math.random() * 40);
+        // Dark rich red base color
+        const redValue = 170 + Math.floor(Math.random() * 50);
         word.style.color = `rgb(${redValue}, 35, 35)`;
         
         // Calculate position based on heart equation
@@ -178,20 +198,98 @@
         word.style.left = `${leftPos}px`;
         word.style.top = `${topPos}px`;
         
-        // Staggered appearance animation delay
-        word.style.animationDelay = `${idx * 0.018}s`;
+        // Staggered appearance animation
+        word.style.animation = `gentleAppear 0.4s ease forwards ${idx * 0.012}s`;
         
-        // Custom float delay to make heart feel organic
-        const floatDelay = (idx % 7) * 0.4;
-        word.style.animation = `gentleAppear 0.45s ease forwards, softFloat 2.8s ease-in-out infinite ${floatDelay}s`;
+        // Add gentle floating animation with different delays for organic feel
+        const floatDelay = (idx % 9) * 0.3;
+        word.style.animation = `gentleAppear 0.4s ease forwards ${idx * 0.012}s, softFloat 3s ease-in-out infinite ${floatDelay}s`;
         
         container.appendChild(word);
         wordElements.push(word);
       });
     }
     
+    // ==================== TRAIN WAVE ANIMATION ====================
+    // Creates a moving "train" of glowing words that travels around the heart
+    // The train has a leading "engine" word that glows brightest, followed by trailing words
+    
+    function startTrainAnimation() {
+      if (trainInterval) clearInterval(trainInterval);
+      
+      let trainPosition = 0;
+      const trainLength = 12; // Number of words that are "in the train" at once
+      const stepDelay = 65; // milliseconds between each step - smooth train movement
+      
+      // Clear any existing active classes
+      function clearAllTrainEffects() {
+        wordElements.forEach(word => {
+          word.classList.remove('train-active', 'train-trail');
+        });
+      }
+      
+      // Apply train effect centered at a specific index
+      function applyTrainAtPosition(centerIdx) {
+        clearAllTrainEffects();
+        
+        for (let offset = 0; offset < trainLength; offset++) {
+          const wordIdx = (centerIdx + offset) % totalWords;
+          const word = wordElements[wordIdx];
+          if (!word) continue;
+          
+          if (offset === 0) {
+            // The "engine" - brightest and largest
+            word.classList.add('train-active');
+          } else if (offset <= 5) {
+            // Trail cars - still glowing but less intense
+            word.classList.add('train-trail');
+          } else {
+            // Fading tail - subtle effect
+            word.style.transform = 'scale(1.02) translateY(-1px)';
+            word.style.textShadow = '0 0 5px #ff3333, 0 0 10px #aa2222';
+            setTimeout(() => {
+              if (word && !word.classList.contains('train-active') && !word.classList.contains('train-trail')) {
+                word.style.transform = '';
+                word.style.textShadow = '';
+              }
+            }, 200);
+          }
+        }
+        
+        // Also add a subtle color pulse to the engine for dramatic effect
+        const engineWord = wordElements[centerIdx];
+        if (engineWord) {
+          engineWord.style.transition = 'color 0.15s ease';
+          engineWord.style.color = '#ff7777';
+          setTimeout(() => {
+            if (engineWord) engineWord.style.color = '';
+          }, 150);
+        }
+      }
+      
+      // Start the moving train
+      trainInterval = setInterval(() => {
+        if (!isTrainRunning) return;
+        
+        // Move train forward
+        trainPosition = (trainPosition + 1) % totalWords;
+        applyTrainAtPosition(trainPosition);
+        
+        // Optional: subtle heart pulse when train passes certain points
+        if (trainPosition % 25 === 0) {
+          centerE.style.animation = 'none';
+          centerE.style.transform = 'translate(-50%, -50%) scale(1.05)';
+          setTimeout(() => {
+            if (centerE) {
+              centerE.style.animation = 'eGlowPulse 2s ease-in-out infinite alternate';
+              centerE.style.transform = 'translate(-50%, -50%) scale(1)';
+            }
+          }, 150);
+        }
+      }, stepDelay);
+    }
+    
     // ==================== RESPONSIVE REPOSITIONING ====================
-    // Keep heart perfectly centered and shaped on window resize
     function repositionHeart() {
       centerX = window.innerWidth / 2;
       centerY = window.innerHeight / 2;
@@ -214,11 +312,10 @@
       centerE.style.transform = 'translate(-50%, -50%)';
     }
     
-    // ==================== ADD EXTRA SPARKLE TO HEART (optional visual flair) ====================
-    // Creates tiny shimmering dots around heart for magical feel
+    // ==================== ADD SPARKLES AROUND HEART ====================
     function addHeartSparkles() {
-      const sparkleColors = ['#ff4444', '#ff6666', '#cc3333', '#ff7777'];
-      for (let i = 0; i < 60; i++) {
+      const sparkleColors = ['#ff4444', '#ff6666', '#cc3333', '#ff7777', '#aa2222'];
+      for (let i = 0; i < 80; i++) {
         const sparkle = document.createElement('div');
         sparkle.style.position = 'absolute';
         sparkle.style.width = '2px';
@@ -227,29 +324,29 @@
         sparkle.style.borderRadius = '50%';
         sparkle.style.pointerEvents = 'none';
         sparkle.style.opacity = '0';
-        sparkle.style.zIndex = '8';
+        sparkle.style.zIndex = '5';
         
         // Random position around heart area
         const angle = Math.random() * Math.PI * 2;
-        const radius = 150 + Math.random() * 80;
+        const radius = 160 + Math.random() * 90;
         const offsetX = Math.cos(angle) * radius;
-        const offsetY = Math.sin(angle) * radius * 0.8; // slightly elliptical
+        const offsetY = Math.sin(angle) * radius * 0.8;
         
         sparkle.style.left = `calc(50% + ${offsetX}px)`;
         sparkle.style.top = `calc(50% + ${offsetY}px)`;
         
-        sparkle.style.animation = `sparkleFade ${1 + Math.random() * 2}s ease-in-out infinite ${Math.random() * 2}s`;
+        sparkle.style.animation = `sparkleFade ${0.8 + Math.random() * 1.5}s ease-in-out infinite ${Math.random() * 2}s`;
         container.appendChild(sparkle);
       }
       
-      // Add sparkle animation style if not exists
+      // Add sparkle animation style
       if (!document.querySelector('#sparkleStyle')) {
         const style = document.createElement('style');
         style.id = 'sparkleStyle';
         style.textContent = `
           @keyframes sparkleFade {
             0% { opacity: 0; transform: scale(0); }
-            50% { opacity: 0.8; transform: scale(1.5); }
+            50% { opacity: 0.9; transform: scale(1.8); box-shadow: 0 0 6px #ff6666; }
             100% { opacity: 0; transform: scale(0); }
           }
         `;
@@ -257,26 +354,66 @@
       }
     }
     
+    // ==================== ADD TINY GLOW DOTS ON HEART PATH ====================
+    function addPathGlowDots() {
+      // Create subtle glow dots that follow the heart perimeter
+      for (let i = 0; i < totalWords; i += 3) {
+        const point = heartPoints[i];
+        const dot = document.createElement('div');
+        dot.style.position = 'absolute';
+        dot.style.width = '3px';
+        dot.style.height = '3px';
+        dot.style.backgroundColor = '#ff4444';
+        dot.style.borderRadius = '50%';
+        dot.style.opacity = '0.3';
+        dot.style.pointerEvents = 'none';
+        dot.style.zIndex = '3';
+        dot.style.boxShadow = '0 0 4px #ff0000';
+        
+        const leftPos = centerX + point.x * heartScale;
+        const topPos = centerY - point.y * heartScale;
+        dot.style.left = `${leftPos}px`;
+        dot.style.top = `${topPos}px`;
+        
+        container.appendChild(dot);
+      }
+    }
+    
     // ==================== INITIALIZE ====================
     createWordsOnHeart();
     
-    // Add subtle sparkles around heart (optional beauty)
+    // Small delay to ensure all elements are rendered
     setTimeout(() => {
+      repositionHeart();
       addHeartSparkles();
-    }, 500);
+      addPathGlowDots();
+      
+      // Start the train animation after heart is fully visible
+      setTimeout(() => {
+        startTrainAnimation();
+      }, 800);
+    }, 150);
     
-    // Reposition on window resize for perfect responsiveness
+    // Reposition on window resize and restart train positioning
     window.addEventListener('resize', () => {
       repositionHeart();
+      // Small delay to ensure smooth repositioning
+      setTimeout(() => {
+        repositionHeart();
+      }, 50);
     });
     
-    // Small delay to ensure all fonts and positions are calculated
-    setTimeout(() => {
-      repositionHeart();
-    }, 100);
+    // Optional: Pause train animation when tab is not visible (performance)
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        isTrainRunning = false;
+      } else {
+        isTrainRunning = true;
+      }
+    });
     
     // Log success
-    console.log(`❤️ Beautiful heart created with ${totalWords} "I love you" words. Central E glowing in the middle.`);
+    console.log(`❤️ Beautiful heart created with ${totalWords} "I love you" words. Train animation running around the heart! Central E glowing perfectly in middle.`);
   })();
 </script>
 </body>
